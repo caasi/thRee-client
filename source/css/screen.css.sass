@@ -14,22 +14,24 @@ body
   background: url("../img/px_by_Gre3g.png")
 
   #wrap
+    position: relative
     width: 960px
     margin: 0 auto
 
     .chat
-      position: relative
+      position: absolute
+      top: 3em
+      bottom: 5em
+      left: 0
+      right: 0
       .logs
+        +box-sizing(border-box)
         +box-shadow(#151515 0 10px 100px)
         +border-top-radius
-        position: absolute
-        top: 50px
-        bottom: 50px
-        left: 0
-        right: 0
-        overflow: hidden
+        height: 100%
         color: white
-        background-color: #161616
+        background-color: #101010
+        overflow: hidden
         padding: 1em 0
         li
           +clearfix
@@ -68,10 +70,10 @@ body
           +border-bottom-radius
           +box-shadow(#151515 0 10px 100px)
           position: absolute
-          bottom: 50px
+          top: 100%
           font-size: 120%
           line-height: 1em
           width: 100%
           border: 0
           margin: 0
-          padding: 5px
+          padding: 0.5em

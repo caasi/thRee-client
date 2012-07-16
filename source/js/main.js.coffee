@@ -57,11 +57,11 @@ $(document).ready ->
   ko.applyBindings three
 
   $window = $ window
-  $chat = $ ".chat"
+  $wrap = $ "#wrap"
 
   $window.resize ->
-    $chat.height $window.height()
+    $wrap.height $window.height()
 
-  $chat.height $window.height()
+  $wrap.height $window.height()
 
   do $("input:last").focus
