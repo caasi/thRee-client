@@ -3,7 +3,7 @@ thRee-client
 
 Web client of [thRee](https://github.com/caasi/thRee).
 
-TODO
+ToDo
 ----
 
 *   user list
