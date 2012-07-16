@@ -9,9 +9,9 @@ Log = (log) ->
   log.classes[log.type] = true
   log.date = ->
     hour = do time.getHours
-    hour = "0" + hour if hour.length is 1
+    hour = "0" + hour if hour < 10
     minute = do time.getMinutes
-    minute = "0" + minute if minute.length is 1
+    minute = "0" + minute if minute < 10
     hour + ":" + minute
   log
 
@@ -55,4 +55,13 @@ $(document).ready ->
         $msg.val ""
 
   ko.applyBindings three
+
+  $window = $ window
+  $chat = $ ".chat"
+
+  $window.resize ->
+    $chat.height $window.height()
+
+  $chat.height $window.height()
+
   do $("input:last").focus

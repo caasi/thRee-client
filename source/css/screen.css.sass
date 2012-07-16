@@ -10,19 +10,27 @@
 body
   font-family: monospace
   font-size: 10pt
-  background-color: #333
+  overflow: hidden
+  background: url("../img/px_by_Gre3g.png")
 
   #wrap
     width: 960px
     margin: 0 auto
 
     .chat
+      position: relative
       .logs
-        +box-shadow(black 0 0 5px)
-        height: 700px
+        +box-shadow(#151515 0 10px 100px)
+        +border-top-radius
+        position: absolute
+        top: 50px
+        bottom: 50px
+        left: 0
+        right: 0
         overflow: hidden
         color: white
         background-color: #161616
+        padding: 1em 0
         li
           +clearfix
           position: relative
@@ -58,7 +66,9 @@ body
         input
           +box-sizing(border-box)
           +border-bottom-radius
-          +box-shadow(black 0 0 5px)
+          +box-shadow(#151515 0 10px 100px)
+          position: absolute
+          bottom: 50px
           font-size: 120%
           line-height: 1em
           width: 100%
