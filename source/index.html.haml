@@ -5,9 +5,10 @@ title: thRee
 #wrap
   .chat
     %script#log(type="text/html")
-      %li<
-        %span.name{"data-bind" => "text: name, css: classes"}>
-        %span.text{"data-bind" => "text: text, css: classes"}
+      %li{"data-bind" => "css: classes"}<
+        %span.name{"data-bind" => "text: name"}>
+        %span.text{"data-bind" => "text: text"}>
+        %span.time{"data-bind" => "text: date()"}
     %ul.logs{"data-bind" => "template: { name: 'log', foreach: logs, afterRender: logsRendered }"}
     %form.input{"data-bind" => "submit: send"}
       %input(type="text")

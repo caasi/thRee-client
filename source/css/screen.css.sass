@@ -25,6 +25,7 @@ body
         background-color: #161616
         li
           +clearfix
+          position: relative
           line-height: 1.5em
           .name
             +box-sizing(border-box)
@@ -34,16 +35,24 @@ body
             color: green
             width: 8em
             padding: 0 1em
-          .name.history
-            color: #2f4f2f
           .text
             display: block
             float: left
-          .text.history
+          .time
             color: #999
-          .text.whisper
+            position: absolute
+            right: 0
+            padding-right: 1em
+        li.history
+          .name
+            color: #2f4f2f
+          .text
+            color: #999
+        li.whisper
+          .text
             color: #f0f
-          .text.self
+        li.self
+          .text
             color: yellow
       .input
         input

@@ -3,8 +3,16 @@ $ = jQuery
 duration = 500
 
 Log = (log) ->
+  time = new Date(log.time)
+
   log.classes = {}
   log.classes[log.type] = true
+  log.date = ->
+    hour = do time.getHours
+    hour = "0" + hour if hour.length is 1
+    minute = do time.getMinutes
+    minute = "0" + minute if minute.length is 1
+    hour + ":" + minute
   log
 
 $(document).ready ->
@@ -27,8 +35,7 @@ $(document).ready ->
       for element in elements
         do (element) ->
           $msg = $ element
-          $msg.css {opacity: 0}
-          $msg.fadeTo duration, 1
+          $msg.fadeIn duration
     send: (formElement) ->
       $msg = $(formElement).find "input"
       msg = $msg.val()
@@ -40,6 +47,7 @@ $(document).ready ->
             name: this.user.name()
             text: msg
             type: "self"
+            time: new Date().getTime()
           }
           $logs = $ ".logs"
           $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
