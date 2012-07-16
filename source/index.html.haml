@@ -1,0 +1,13 @@
+---
+title: thRee
+---
+
+#wrap
+  .chat
+    %script#log(type="text/html")
+      %li<
+        %span.name{"data-bind" => "text: name, css: classes"}>
+        %span.text{"data-bind" => "text: text, css: classes"}
+    %ul.logs{"data-bind" => "template: { name: 'log', foreach: logs, afterRender: logsRendered }"}
+    %form.input{"data-bind" => "submit: send"}
+      %input(type="text")

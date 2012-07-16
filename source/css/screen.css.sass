@@ -1,0 +1,58 @@
+@import "compass/reset/utilities"
+@import "compass/css3/box-sizing"
+@import "compass/css3/border-radius"
+@import "compass/css3/box-shadow"
+@import "compass/utilities/general/clearfix"
+@import "compass/utilities/general/min"
+
++global-reset
+
+body
+  font-family: monospace
+  font-size: 10pt
+  background-color: #333
+
+  #wrap
+    width: 960px
+    margin: 0 auto
+
+    .chat
+      .logs
+        +box-shadow(black 0 0 5px)
+        height: 700px
+        overflow: hidden
+        color: white
+        background-color: #161616
+        li
+          +clearfix
+          line-height: 1.5em
+          .name
+            +box-sizing(border-box)
+            display: block
+            float: left
+            text-align: right
+            color: green
+            width: 8em
+            padding: 0 1em
+          .name.history
+            color: #2f4f2f
+          .text
+            display: block
+            float: left
+          .text.history
+            color: #999
+          .text.whisper
+            color: #f0f
+          .text.self
+            color: yellow
+      .input
+        input
+          +box-sizing(border-box)
+          +border-bottom-radius
+          +box-shadow(black 0 0 5px)
+          font-size: 120%
+          line-height: 1em
+          width: 100%
+          border: 0
+          margin: 0
+          padding: 5px
