@@ -6,6 +6,7 @@ Web client of [thRee](https://github.com/caasi/thRee).
 Depends on
 ----------
 
+*   [jquery-cookie](https://github.com/carhartl/jquery-cookie/)
 *   [marked](https://github.com/chjj/marked/)
 
 ToDo

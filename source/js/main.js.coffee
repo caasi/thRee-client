@@ -26,6 +26,7 @@ $(document).ready ->
 
   socket.on "user", (user) ->
     three.user.name user.name
+    $.cookie "name", user.name, { expires: 14, path: "/" }
 
   three =
     user:
@@ -65,3 +66,7 @@ $(document).ready ->
   $wrap.height $window.height()
 
   do $("input:last").focus
+  
+  /* update cookie */
+  name = $.cookie "name"
+  $.cookie "name", name, { expires: 14, path: "/" }
