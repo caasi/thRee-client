@@ -3,10 +3,16 @@ thRee-client
 
 Web client of [thRee](https://github.com/caasi/thRee).
 
+Depends on
+----------
+
+*   [marked](https://github.com/chjj/marked/)
+
 ToDo
 ----
 
 *   user list
+*   markdown support
 *   command history
 *   autocomplete
 
