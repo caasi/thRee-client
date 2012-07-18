@@ -47,6 +47,8 @@
 #   end
 # end
 
+set :build_dir, '~/www/thRee/'
+
 set :css_dir, 'css'
 
 set :js_dir, 'js'
