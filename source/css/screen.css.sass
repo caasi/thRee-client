@@ -19,20 +19,20 @@ body
     margin: 0 auto
 
     .chat
+      +box-sizing(border-box)
+      +box-shadow(#151515 0 10px 100px)
+      +border-top-radius
+      color: white
+      background-color: #101010
       position: absolute
       top: 3em
-      bottom: 5em
+      bottom: 6em
       left: 0
       right: 0
+      padding: 1em
       .logs
-        +box-sizing(border-box)
-        +box-shadow(#151515 0 10px 100px)
-        +border-top-radius
         height: 100%
-        color: white
-        background-color: #101010
         overflow: hidden
-        padding: 1em 0
         li
           +clearfix
           position: relative
@@ -52,7 +52,6 @@ body
             color: #999
             position: absolute
             right: 0
-            padding-right: 1em
         li.history
           .name
             color: #2f4f2f
@@ -71,6 +70,7 @@ body
           +box-shadow(#151515 0 10px 100px)
           position: absolute
           top: 100%
+          left: 0
           font-size: 120%
           line-height: 1em
           width: 100%
