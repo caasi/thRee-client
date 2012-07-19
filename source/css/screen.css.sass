@@ -41,15 +41,20 @@ body
           line-height: 1.5em
           .name
             +box-sizing(border-box)
-            display: block
+            +min-width(8em)
             float: left
             text-align: right
-            color: green
-            width: 8em
-            padding: 0 1em
+            color: #adff2f
+            .speaker
+            .target
+              color: green
+            .target:before
+              content: ">"
+              color: #f0f
           .text
             display: block
             float: left
+            margin-left: 1em
             p
               margin-bottom: 1em
             p:last-child
@@ -63,7 +68,7 @@ body
             color: #2f4f2f
           .text
             color: #999
-        li.whisper
+        li.private
           .text
             color: #f0f
         li.self

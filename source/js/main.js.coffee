@@ -5,6 +5,7 @@ duration = 500
 Log = (log) ->
   time = new Date(log.time)
 
+  log.target = log.target || null
   log.classes = {}
   log.classes[log.type] = true
   log.date = ->
@@ -20,6 +21,7 @@ $(document).ready ->
   socket = io.connect "http://caasigd.org:8081"
 
   socket.on "log", (data) ->
+    console.log data
     data = Log data
     three.logs.push data
     $logs = $ ".logs"
@@ -31,7 +33,7 @@ $(document).ready ->
 
   three =
     user:
-      name: ko.observable("guest")
+      name: ko.observable($.cookie "name")
     logs: ko.observableArray()
     logsRendered: (elements) ->
       for element in elements
@@ -42,18 +44,7 @@ $(document).ready ->
       $msg = $(formElement).find "input"
       msg = $msg.val()
       if msg.length
-        socket.emit "msg", msg
-
-        if msg.charAt(0) isnt "/"
-          this.logs.push Log {
-            name: this.user.name()
-            text: msg
-            type: "self"
-            time: new Date().getTime()
-          }
-          $logs = $ ".logs"
-          $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
-
+        socket.emit "command", msg
         $msg.val ""
 
   ko.applyBindings three
@@ -69,5 +60,4 @@ $(document).ready ->
   do $("input:last").focus
   
   # update cookie
-  name = $.cookie "name"
-  $.cookie "name", name, { expires: 14, path: "/" }
+  $.cookie "name", three.user.name(), { expires: 14, path: "/" }

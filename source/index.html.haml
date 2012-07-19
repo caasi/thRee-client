@@ -6,7 +6,9 @@ title: thRee
   .chat
     %script#log(type="text/html")
       %li{"data-bind" => "css: classes"}<
-        %span.name{"data-bind" => "text: name"}>
+        .name
+          %span.speaker{"data-bind" => "text: name"}>
+          %span.target{"data-bind" => "visible: target, text: target"}>
         %span.text{"data-bind" => "html: html"}>
         %span.time{"data-bind" => "text: date()"}
     %ul.logs{"data-bind" => "template: { name: 'log', foreach: logs, afterRender: logsRendered }"}
