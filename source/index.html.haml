@@ -7,7 +7,7 @@ title: thRee
     %script#log(type="text/html")
       %li{"data-bind" => "css: classes"}<
         %span.name{"data-bind" => "text: name"}>
-        %span.text{"data-bind" => "text: text"}>
+        %span.text{"data-bind" => "html: html"}>
         %span.time{"data-bind" => "text: date()"}
     %ul.logs{"data-bind" => "template: { name: 'log', foreach: logs, afterRender: logsRendered }"}
     %form.input{"data-bind" => "submit: send"}

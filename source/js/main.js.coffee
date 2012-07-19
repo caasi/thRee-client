@@ -13,6 +13,7 @@ Log = (log) ->
     minute = do time.getMinutes
     minute = "0" + minute if minute < 10
     hour + ":" + minute
+  log.html = marked log.text
   log
 
 $(document).ready ->
@@ -67,6 +68,6 @@ $(document).ready ->
 
   do $("input:last").focus
   
-  /* update cookie */
+  # update cookie
   name = $.cookie "name"
   $.cookie "name", name, { expires: 14, path: "/" }
