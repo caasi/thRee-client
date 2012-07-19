@@ -13,7 +13,6 @@ ToDo
 ----
 
 *   user list
-*   markdown support
 *   command history
 *   autocomplete
 
