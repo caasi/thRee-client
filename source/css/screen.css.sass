@@ -28,7 +28,7 @@ body
       background-color: #101010
       position: absolute
       top: 3em
-      bottom: 6em
+      bottom: 5.5em
       left: 0
       right: 0
       padding: 1em
@@ -75,16 +75,40 @@ body
           .text
             color: yellow
       .input
-        input
+        span, input
+          border-top: 1px solid #202020
+          background-color: #101010
+        span.name
           +box-sizing(border-box)
-          +border-bottom-radius
+          +border-bottom-left-radius
           +box-shadow(#151515 0 10px 100px)
+          font-size: 100%
+          text-align: right
+          color: #adff2f
+          display: block
           position: absolute
           top: 100%
           left: 0
-          font-size: 120%
-          line-height: 1em
-          width: 100%
-          border: 0
+          width: 9.5em
+          line-height: 1.5em
+          padding: 0.5em 0.5em 0.5em 1em
+        input
+          +box-sizing(border-box)
+          +border-bottom-right-radius
+          +box-shadow(#151515 0 10px 100px, black 0 0 10px inset)
+          font-size: 100%
+          color: white
+          position: absolute
+          top: 100%
+          left: 9.5em
+          right: 0
+          line-height: 1.5em
+          border-left-width: 0
+          border-right-width: 0
+          border-bottom-width: 0
+          border-spacing: 0
           margin: 0
-          padding: 0.5em
+          padding: 0.5em 1em 0.5em 0.5em
+        input:focus
+          outline: none
+          color: yellow
