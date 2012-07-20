@@ -13,5 +13,5 @@ title: thRee
         %span.time{"data-bind" => "text: date()"}
     %ul.logs{"data-bind" => "template: { name: 'log', foreach: logs, afterRender: logsRendered }"}
     %form.input{"data-bind" => "submit: send"}
-      %span.name{"data-bind" => "text: user.name"}
+      %span.name{"data-bind" => "text: user.name() || ' '"}
       %input(type="text")

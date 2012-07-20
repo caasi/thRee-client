@@ -60,4 +60,5 @@ $(document).ready ->
   do $("input:last").focus
   
   # update cookie
-  $.cookie "name", three.user.name(), { expires: 14, path: "/" }
+  if three.user.name()
+    $.cookie "name", three.user.name(), { expires: 14, path: "/" }
