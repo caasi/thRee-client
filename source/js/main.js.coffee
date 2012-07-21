@@ -37,15 +37,14 @@ $(document).ready ->
           $.cookie "name", name, { expires: 14, path: "/" }
     # RPC utils
     commandFromString: (str) ->
-      return null if str.charAt 0 isnt "/"
+      return null if str.charAt(0) isnt "/"
       cmd =
         keypath: undefined,
         args: undefined
       str = str.substring 1
       cmd.args = str.split " "
-      cmd.keypath = cmd.args.shift
+      cmd.keypath = do cmd.args.shift
       cmd.keypath = cmd.keypath.split "."
-      console.log cmd
       cmd
     exec: (cmd) ->
       prev = undefined
@@ -68,11 +67,14 @@ $(document).ready ->
       $msg = $(formElement).find "input"
       msg = $msg.val()
       if msg.length
-        socket.emit "command", msg
+        if msg.charAt(0) isnt "/"
+          msg = "/say " + msg
+        socket.emit "cmd", this.commandFromString msg
         $msg.val ""
 
   ko.applyBindings thRee
 
+  # compute console height
   $window = $ window
   $wrap = $ "#wrap"
 
