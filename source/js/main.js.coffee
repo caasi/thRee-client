@@ -55,11 +55,11 @@ $(document).ready ->
         chat:
           log: (log) ->
             log = Log log
-            thRee.logs.push log
+            site.logs.push log
             $logs = $ ".logs"
             $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
         username: (name) ->
-          thRee.user.name name
+          site.user.name name
           $.cookie "name", name, { expires: 14, path: "/" }
       # RPC utils
       struct: (o) ->
@@ -68,16 +68,6 @@ $(document).ready ->
           ret[key] = thRee.struct o[key]
         ) key for key of o
         ret
-      commandFromString: (str) ->
-        return null if str.charAt(0) isnt "/"
-        cmd =
-          keypath: undefined,
-          args: undefined
-        str = str.substring 1
-        cmd.args = str.split " "
-        cmd.keypath = do cmd.args.shift
-        cmd.keypath = cmd.keypath.split "."
-        cmd
       exec: (cmd) ->
         prev = undefined
         current = this.exts
@@ -86,23 +76,6 @@ $(document).ready ->
           current = current[key]
         ) key for key in cmd.keypath
         current?.apply prev, cmd.args
-      # ko objects
-      user:
-        name: ko.observable($.cookie "name")
-      logs: ko.observableArray()
-      logsRendered: (elements) ->
-        for element in elements
-          do (element) ->
-            $msg = $ element
-            $msg.fadeIn duration
-      send: (formElement) ->
-        $msg = $(formElement).find "input"
-        msg = $msg.val()
-        if msg.length
-          if msg.charAt(0) isnt "/"
-            msg = "/say " + msg
-          socket.emit "cmd", this.commandFromString msg
-          $msg.val ""
 
     thRee.server.on "bubble", (e, cmd) ->
       socket.emit "cmd", cmd
@@ -112,19 +85,48 @@ $(document).ready ->
 
     socket.emit "expose", thRee.struct thRee.exts
 
-    ko.applyBindings thRee
+  site =
+    commandFromString: (str) ->
+      return null if str.charAt(0) isnt "/"
+      cmd =
+        keypath: undefined,
+        args: undefined
+      str = str.substring 1
+      cmd.args = str.split " "
+      cmd.keypath = do cmd.args.shift
+      cmd.keypath = cmd.keypath.split "."
+      cmd
+    # ko objects
+    user:
+      name: ko.observable($.cookie "name")
+    logs: ko.observableArray()
+    logsRendered: (elements) ->
+      for element in elements
+        do (element) ->
+          $msg = $ element
+          $msg.fadeIn duration
+    send: (formElement) ->
+      $msg = $(formElement).find "input"
+      msg = $msg.val()
+      if msg.length
+        if msg.charAt(0) isnt "/"
+          msg = "/say " + msg
+        socket.emit "cmd", this.commandFromString msg
+        $msg.val ""
+
+  ko.applyBindings site
   
-    # compute console height
-    $window = $ window
-    $wrap = $ "#wrap"
+  # compute console height
+  $window = $ window
+  $wrap = $ "#wrap"
 
-    $window.resize ->
-      $wrap.height $window.height()
-
+  $window.resize ->
     $wrap.height $window.height()
 
-    do $("input:last").focus
+  $wrap.height $window.height()
+
+  do $("input:last").focus
   
-    # update cookie
-    if thRee.user.name()
-      $.cookie "name", thRee.user.name(), { expires: 14, path: "/" }
+  # update cookie
+  if site.user.name()
+    $.cookie "name", site.user.name(), { expires: 14, path: "/" }
