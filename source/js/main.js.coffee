@@ -19,8 +19,6 @@ Log = (log) ->
 
 $(document).ready ->
   socket = io.connect "http://caasigd.org:8081"
-  socket.on "object", ->
-    socket.emit "object", thRee.struct thRee.exts
   socket.on "cmd", (cmd) ->
     thRee.exec cmd
 
@@ -80,6 +78,8 @@ $(document).ready ->
         $msg.val ""
 
   ko.applyBindings thRee
+  
+  socket.emit "expose", thRee.struct thRee.exts
 
   # compute console height
   $window = $ window
