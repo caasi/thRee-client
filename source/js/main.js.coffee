@@ -19,6 +19,8 @@ Log = (log) ->
 
 $(document).ready ->
   socket = io.connect "http://caasigd.org:8081"
+  socket.on "object", ->
+    socket.emit "object", thRee.struct thRee.exts
   socket.on "cmd", (cmd) ->
     thRee.exec cmd
 
@@ -31,11 +33,16 @@ $(document).ready ->
           thRee.logs.push log
           $logs = $ ".logs"
           $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
-      user:
-        name: (name) ->
-          thRee.user.name name
-          $.cookie "name", name, { expires: 14, path: "/" }
+      username: (name) ->
+        thRee.user.name name
+        $.cookie "name", name, { expires: 14, path: "/" }
     # RPC utils
+    struct: (o) ->
+      ret = {}
+      ((key) ->
+        ret[key] = thRee.struct o[key]
+      ) key for key of o
+      ret
     commandFromString: (str) ->
       return null if str.charAt(0) isnt "/"
       cmd =
