@@ -50,7 +50,7 @@ $(document).ready ->
   socket.on "expose", (o) ->
     thRee =
       # RPCs with namespace
-      server: Actor o
+      server: null#Actor o
       exts:
         chat:
           log: (log) ->
@@ -63,7 +63,10 @@ $(document).ready ->
           $.cookie "name", name, { expires: 14, path: "/" }
       # RPC utils
       struct: (o) ->
-        ret = {}
+        if (typeof o is "function")
+          ret = { type: "function" }
+        else
+          ret = {}
         ((key) ->
           ret[key] = thRee.struct o[key]
         ) key for key of o
@@ -77,8 +80,10 @@ $(document).ready ->
         ) key for key in cmd.keypath
         current?.apply prev, cmd.args
 
+    ###
     thRee.server.on "bubble", (e, cmd) ->
       socket.emit "cmd", cmd
+    ###
 
     socket.on "cmd", (cmd) ->
       thRee.exec cmd
