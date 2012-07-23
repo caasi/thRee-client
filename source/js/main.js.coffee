@@ -17,7 +17,7 @@ EventEmitter = (o) ->
 
 exec = (o, cmd) ->
   prev = undefined
-  current = this.exts
+  current = o
   ((key) ->
     prev = current
     current = current[key]
@@ -74,8 +74,6 @@ Agent = (target, thisArg) ->
               keypath: [key]
               args: [value]
     ) key for key of target
-    ret.exec = (cmd) ->
-      exec(target, cmd)
   ret
 
 DObject = ->
@@ -170,13 +168,24 @@ $(document).ready ->
     socket.emit "expose", DObject.expose thRee.exts
 
   socket.on "foobar", (foo) ->
-    agentFoo = Agent DObject.validate foo
+    foo = DObject.validate foo
+    agentFoo = Agent foo
     agentFoo.on "bubble", (e, cmd) ->
       socket.emit "foobar.cmd", cmd
-    agentFoo.count += 1
+
+    foobar =
+      count: ko.observable(foo.count)
+      inc: ->
+        agentFoo.count += 1
+      dec: ->
+        agentFoo.count -= 1
 
     socket.on "foobar.cmd", (cmd) ->
-      agentFoo.exec cmd
+      exec foo, cmd
+      console.log cmd
+      foobar.count foo.count
+
+    ko.applyBindings foobar, $("#foobar").get()[0]
 
   site =
     commandFromString: (str) ->
@@ -207,7 +216,7 @@ $(document).ready ->
         socket.emit "cmd", this.commandFromString msg
         $msg.val ""
 
-  ko.applyBindings site
+  ko.applyBindings site, $("#wrap").get()[0]
   
   # compute console height
   $window = $ window
