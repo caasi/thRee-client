@@ -2,6 +2,18 @@ $ = jQuery
 
 duration = 500
 
+isObject = (o) ->
+  o? and o is Object o
+
+isFunction = (o) ->
+  typeof o is "function"
+
+isNumber = (o) ->
+  Object.prototype.toString(o) is "[object Number]"
+
+isString = (o) ->
+  Object.prototype.toString(o) is "[object String]"
+
 EventEmitter = (o) ->
   o.emitter = $ {}
 
@@ -15,7 +27,18 @@ EventEmitter = (o) ->
     o.emitter.unbind e, cc
   o
 
-exec = (o, cmd) ->
+Command = (str) ->
+  return null if str.charAt(0) isnt "/"
+  cmd =
+    keypath: undefined,
+    args: undefined
+  str = str.substring 1
+  cmd.args = str.split " "
+  cmd.keypath = do cmd.args.shift
+  cmd.keypath = cmd.keypath.split "."
+  cmd
+
+Command.exec = (o, cmd) ->
   prev = undefined
   current = o
   ((key) ->
@@ -23,7 +46,7 @@ exec = (o, cmd) ->
     current = current[key]
   ) key for key in cmd.keypath
   if cmd.type is "msg"
-    current?.apply prev, cmd.args
+    return current?.apply prev, cmd.args
   else
     if cmd.type is "get"
       return prev[cmd.keypath[cmd.keypath.length - 1]]
@@ -31,21 +54,19 @@ exec = (o, cmd) ->
       prev[cmd.keypath[cmd.keypath.length - 1]] = cmd.args[0]
 
 Agent = (target, thisArg) ->
-  type = typeof target
-
   if Array.isArray target
     ret = null
-  else if type is "function"
+  else if isFunction target
     ret = (args...) ->
       target.apply thisArg, arguments
       ret.emit "bubble",
         type: "msg"
         keypath: []
         args: args
-  else if type is "object"
-    ret = {}
-  else
+  else if isNumber(target) or isString(target)
     ret = null
+  else if isObject target
+    ret = {}
 
   if ret
     ret = EventEmitter ret
@@ -76,23 +97,33 @@ Agent = (target, thisArg) ->
     ) key for key of target
   ret
 
-DObject = ->
-  null
+DObject = (o) ->
+  agent = Agent o
+  agent.exec = (cmd) ->
+    Command.exec this, cmd
+  agent.expose = ->
+    DObject.expose o
+  agent
+
+DObject.interface = (o) ->
+  agent = Agent o
+  agent.exec = (cmd) ->
+    Command.exec o, cmd
+  agent
 
 DObject.validate = (o) ->
-  type = typeof o
   if Array.isArray o
     ret = o
-  else if type is "function"
+  else if isFunction o
     ret = o
-  else if type is "object"
+  else if isNumber(o) or isString(o)
+    ret = o
+  else if isObject o
     if o.type? and o.type is "function"
       ret = ->
     else
       ret = o
-  else
-    ret = o
-  if type is "function" or type is "object"
+  if isFunction(o) or isObject(o)
     ((key) ->
       return if key is "type"
       ret[key] = DObject.validate o[key]
@@ -100,15 +131,14 @@ DObject.validate = (o) ->
   ret
 
 DObject.expose = (o) ->
-  type = typeof o
   if Array.isArray o
     ret = o
-  else if type is "function"
+  else if isFunction o
     ret = { type: "function" }
-  else if type is "object"
-    ret = {}
-  else
+  else if isNumber(o) or isString(o)
     ret = o
+  else if isObject o
+    ret = {}
   if ret isnt o
     ((key) ->
       ret[key] = DObject.expose o[key]
@@ -133,74 +163,29 @@ Log = (log) ->
 $(document).ready ->
   socket = io.connect "http://caasigd.org:8081"
 
-  socket.on "expose", (o) ->
-    thRee =
-      # RPCs with namespace
-      server: null#Actor o
-      exts:
-        chat:
-          log: (log) ->
-            log = Log log
-            site.logs.push log
-            $logs = $ ".logs"
-            $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
-        username: (name) ->
-          site.user.name name
-          $.cookie "name", name, { expires: 14, path: "/" }
-      # RPC utils
-      exec: (cmd) ->
-        prev = undefined
-        current = this.exts
-        ((key) ->
-          prev = current
-          current = current[key]
-        ) key for key in cmd.keypath
-        current?.apply prev, cmd.args
+  thRee =
+    # RPCs with namespace
+    chat:
+      log: (log) ->
+        log = Log log
+        site.logs.push log
+        $logs = $ ".logs"
+        $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
+    username: (name) ->
+      site.user.name name
+      $.cookie "name", name, { expires: 14, path: "/" }
+  agent = DObject thRee
+  agent.on "bubble", (e, cmd) ->
+    socket.emit "thRee.cmd", cmd
+  socket.on "thRee.cmd", (cmd) ->
+    agent.exec cmd
 
-    ###
-    thRee.server.on "bubble", (e, cmd) ->
-      socket.emit "cmd", cmd
-    ###
-
-    socket.on "cmd", (cmd) ->
-      thRee.exec cmd
-
-    socket.emit "expose", DObject.expose thRee.exts
-
-  socket.on "foobar", (foo) ->
-    foo = DObject.validate foo
-    agentFoo = Agent foo
-    agentFoo.on "bubble", (e, cmd) ->
-      socket.emit "foobar.cmd", cmd
-
-    foobar =
-      count: ko.observable(foo.count)
-      inc: ->
-        agentFoo.count += 1
-      dec: ->
-        agentFoo.count -= 1
-
-    socket.on "foobar.cmd", (cmd) ->
-      exec foo, cmd
-      console.log cmd
-      foobar.count foo.count
-
-    ko.applyBindings foobar, $("#foobar").get()[0]
+  socket.emit "thRee", do agent.expose
 
   site =
-    commandFromString: (str) ->
-      return null if str.charAt(0) isnt "/"
-      cmd =
-        keypath: undefined,
-        args: undefined
-      str = str.substring 1
-      cmd.args = str.split " "
-      cmd.keypath = do cmd.args.shift
-      cmd.keypath = cmd.keypath.split "."
-      cmd
     # ko objects
     user:
-      name: ko.observable($.cookie "name")
+      name: ko.observable $.cookie "name"
     logs: ko.observableArray()
     logsRendered: (elements) ->
       for element in elements
@@ -213,7 +198,7 @@ $(document).ready ->
       if msg.length
         if msg.charAt(0) isnt "/"
           msg = "/say " + msg
-        socket.emit "cmd", this.commandFromString msg
+        socket.emit "cmd", Command msg
         $msg.val ""
 
   ko.applyBindings site, $("#wrap").get()[0]
