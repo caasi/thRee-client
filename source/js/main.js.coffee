@@ -168,7 +168,7 @@ $(document).ready ->
     prev_name: $.cookie "name"
     log: (log) ->
       logs.list.push Log log
-      $logs = $ ".logs"
+      $logs = $ "#logs"
       $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
     name: (name) ->
       input.name name
