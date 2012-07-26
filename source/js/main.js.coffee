@@ -9,10 +9,10 @@ isFunction = (o) ->
   typeof o is "function"
 
 isNumber = (o) ->
-  Object.prototype.toString(o) is "[object Number]"
+  Object.prototype.toString.call(o) is "[object Number]"
 
 isString = (o) ->
-  Object.prototype.toString(o) is "[object String]"
+  Object.prototype.toString.call(o) is "[object String]"
 
 EventEmitter = (o) ->
   o.emitter = $ {}
@@ -162,16 +162,17 @@ Log = (log) ->
   log
 
 $(document).ready ->
-  socket = io.connect "http://caasigd.org:8081"
+  socket = io.connect "http://caasi.three.jit.su:80/"
 
   thRee =
+    prev_name: $.cookie "name"
     log: (log) ->
       logs.list.push Log log
       $logs = $ ".logs"
       $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
     name: (name) ->
       input.name name
-      $.cookie "name", name, { expires: 14, path: "/" }
+      $.cookie "name", name, { expires: 14 }
   agent = DObject thRee
   agent.on "bubble", (e, cmd) ->
     socket.emit "thRee.cmd", cmd
@@ -203,7 +204,7 @@ $(document).ready ->
 
   ko.applyBindings input, $("#input").get()[0]
 
-  # compute console height
+  # compute height of the console
   $window = $ window
   $wrap = $ "#wrap"
 
