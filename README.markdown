@@ -12,7 +12,6 @@ Depends on
 ToDo
 ----
 
-*   rewrite in distributed objects
 *   consider [EventEmitter2](https://github.com/hij1nx/EventEmitter2)
 *   user list
 *   command history
