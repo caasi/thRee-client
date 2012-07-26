@@ -11,7 +11,7 @@ title: thRee
           %span.target{"data-bind" => "visible: target, text: target"}>
         %span.text{"data-bind" => "html: html"}>
         %span.time{"data-bind" => "text: date()"}
-    %ul.logs{"data-bind" => "template: { name: 'log', foreach: logs, afterRender: logsRendered }"}
-    %form.input{"data-bind" => "submit: send"}
-      %span.name{"data-bind" => "text: user.name() || ' '"}
+    %ul#logs{"data-bind" => "template: { name: 'log', foreach: list, afterRender: didRendered }"}
+    %form#input{"data-bind" => "submit: send"}
+      %span{"data-bind" => "text: name"}
       %input(type="text")

@@ -43,10 +43,11 @@ Command.exec = (o, cmd) ->
   current = o
   ((key) ->
     prev = current
-    current = current[key]
+    current = current?[key]
   ) key for key in cmd.keypath
+  return if not current
   if cmd.type is "msg"
-    return current?.apply prev, cmd.args
+    return Function.prototype.apply.call current, prev, cmd.args
   else
     if cmd.type is "get"
       return prev[cmd.keypath[cmd.keypath.length - 1]]
@@ -164,15 +165,12 @@ $(document).ready ->
   socket = io.connect "http://caasigd.org:8081"
 
   thRee =
-    # RPCs with namespace
-    chat:
-      log: (log) ->
-        log = Log log
-        site.logs.push log
-        $logs = $ ".logs"
-        $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
-    username: (name) ->
-      site.user.name name
+    log: (log) ->
+      logs.list.push Log log
+      $logs = $ ".logs"
+      $logs.animate { scrollTop: $logs.prop "scrollHeight" }, duration
+    name: (name) ->
+      input.name name
       $.cookie "name", name, { expires: 14, path: "/" }
   agent = DObject thRee
   agent.on "bubble", (e, cmd) ->
@@ -182,16 +180,18 @@ $(document).ready ->
 
   socket.emit "thRee", do agent.expose
 
-  site =
-    # ko objects
-    user:
-      name: ko.observable $.cookie "name"
-    logs: ko.observableArray()
-    logsRendered: (elements) ->
+  logs =
+    list: ko.observableArray()
+    didRendered: (elements) ->
       for element in elements
         do (element) ->
           $msg = $ element
           $msg.fadeIn duration
+
+  ko.applyBindings logs, $("#logs").get()[0]
+
+  input =
+    name: ko.observable $.cookie("name") or "?"
     send: (formElement) ->
       $msg = $(formElement).find "input"
       msg = $msg.val()
@@ -201,8 +201,8 @@ $(document).ready ->
         socket.emit "cmd", Command msg
         $msg.val ""
 
-  ko.applyBindings site, $("#wrap").get()[0]
-  
+  ko.applyBindings input, $("#input").get()[0]
+
   # compute console height
   $window = $ window
   $wrap = $ "#wrap"
@@ -213,7 +213,3 @@ $(document).ready ->
   $wrap.height $window.height()
 
   do $("input:last").focus
-  
-  # update cookie
-  if site.user.name()
-    $.cookie "name", site.user.name(), { expires: 14, path: "/" }
