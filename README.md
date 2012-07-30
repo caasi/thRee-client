@@ -13,6 +13,7 @@ Depends on
 ToDo
 ----
 
+*   gameloop should emit update event, and it's the one interval to rule them all
 *   user list
 *   command history
 *   autocomplete
