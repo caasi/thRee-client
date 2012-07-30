@@ -2,31 +2,6 @@ $ = jQuery
 
 duration = 500
 
-isObject = (o) ->
-  o? and o is Object o
-
-isFunction = (o) ->
-  typeof o is "function"
-
-isNumber = (o) ->
-  Object.prototype.toString.call(o) is "[object Number]"
-
-isString = (o) ->
-  Object.prototype.toString.call(o) is "[object String]"
-
-EventEmitter = (o) ->
-  o.emitter = $ {}
-
-  o.emit = (args...) ->
-    o.emitter.trigger.apply o.emitter, args
-  o.once = (e, cc) ->
-    o.emitter.one e, cc
-  o.on = (e, cc) ->
-    o.emitter.bind e, cc
-  o.off = (e, cc) ->
-    o.emitter.unbind e, cc
-  o
-
 Command = (str) ->
   return null if str.charAt(0) isnt "/"
   cmd =
@@ -54,77 +29,31 @@ Command.exec = (o, cmd) ->
     if cmd.type is "set"
       prev[cmd.keypath[cmd.keypath.length - 1]] = cmd.args[0]
 
-Agent = (target, thisArg) ->
-  if Array.isArray target
-    ret = null
-  else if isFunction target
-    ret = (args...) ->
-      target.apply thisArg, arguments
-      ret.emit "bubble",
-        type: "msg"
-        keypath: []
-        args: args
-  else if isNumber(target) or isString(target)
-    ret = null
-  else if isObject target
-    ret = {}
-
-  if ret
-    ret = EventEmitter ret
-    ((key) ->
-      result = Agent target[key], ret
-      if result
-        result.on "bubble", (e, cmd) ->
-          ret.emit "bubble",
-            type: cmd.type
-            keypath: [key].concat cmd.keypath
-            args: cmd.args
-        ret[key] = result
-      else
-        Object.defineProperty ret, key,
-          enumerable: true
-          get: ->
-            ret.emit "bubble",
-              type: "get"
-              keypath: [key]
-              args: []
-            return target[key]
-          set: (value) ->
-            target[key] = value
-            ret.emit "bubble",
-              type: "set"
-              keypath: [key]
-              args: [value]
-    ) key for key of target
-  ret
-
 DObject = (o) ->
-  agent = Agent o
+  agent = Ree o
   agent.exec = (cmd) ->
-    Command.exec this, cmd
+    Ree.exec this, cmd
   agent.expose = ->
     DObject.expose o
   agent
 
 DObject.interface = (o) ->
-  agent = Agent o
+  agent = Ree o
   agent.exec = (cmd) ->
-    Command.exec o, cmd
+    Ree.exec o, cmd
   agent
 
 DObject.validate = (o) ->
-  if Array.isArray o
+  if _.isArray(o) or _.isNumber(o) or _.isString(o) or _.isBoolean(o)
     ret = o
-  else if isFunction o
+  else if _.isFunction o
     ret = o
-  else if isNumber(o) or isString(o)
-    ret = o
-  else if isObject o
+  else if _.isObject o
     if o.type? and o.type is "function"
       ret = ->
     else
       ret = o
-  if isFunction(o) or isObject(o)
+  if _.isFunction(o) or _.isObject(o)
     ((key) ->
       return if key is "type"
       ret[key] = DObject.validate o[key]
@@ -132,13 +61,11 @@ DObject.validate = (o) ->
   ret
 
 DObject.expose = (o) ->
-  if Array.isArray o
+  if _.isArray(o) or _.isNumber(o) or _.isString(o) or _.isBoolean(o)
     ret = o
-  else if isFunction o
+  else if _.isFunction o
     ret = { type: "function" }
-  else if isNumber(o) or isString(o)
-    ret = o
-  else if isObject o
+  else if _.isObject o
     ret = {}
   if ret isnt o
     ((key) ->
