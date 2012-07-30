@@ -9,6 +9,7 @@
 +global-reset
 
 body
+  position: relative
   font-family: monospace
   font-size: 10pt
   overflow: hidden
@@ -112,3 +113,31 @@ body
         input:focus
           outline: none
           color: yellow
+  #recorder
+    +border-radius
+    +box-shadow(#151515 0 10px 100px)
+    position: absolute
+    top: 10px
+    left: 10px
+    background-color: #101010
+    padding: 1em
+    text-align: center
+    #stage
+      overflow: hidden
+      position: relative
+      width: 160px
+      height: 120px
+      border: 1px solid #666
+      margin-bottom: 1em
+      #avatar
+        position: absolute
+        left: 75px
+        top: 55px
+        width: 10px
+        height: 10px
+        background-color: #f90
+    button
+      font-size: 140%
+    #record
+      color: red
+    #play

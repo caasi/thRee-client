@@ -33,8 +33,6 @@
       current = current[key];
     });
 
-    if (!current) return;
-
     if (cmd.type === "msg") {
       return Function.prototype.apply.call(current, prev, cmd.args);
     } else {
