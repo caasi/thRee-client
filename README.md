@@ -6,13 +6,13 @@ Web client of [thRee](https://github.com/caasi/thRee).
 Depends on
 ----------
 
+*   [Ree](https://github.com/caasi/Ree)
 *   [jquery-cookie](https://github.com/carhartl/jquery-cookie/)
 *   [marked](https://github.com/chjj/marked/)
 
 ToDo
 ----
 
-*   consider [EventEmitter2](https://github.com/hij1nx/EventEmitter2)
 *   user list
 *   command history
 *   autocomplete
