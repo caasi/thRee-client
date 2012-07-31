@@ -143,91 +143,112 @@ $(document).ready ->
   do $("input:last").focus
 
   # recorder
-  fps = 60
-  interval = 1000 / fps
-  keymap =
-    "38": "up"
-    "40": "down"
-    "37": "left"
-    "39": "right"
-  controlSource =
-    up: false
-    down: false
-    left: false
-    right: false
-  control = Ree controlSource
-  control.on "bubble", (cmd) ->
-    if startTime and (cmd.type is "set")
-      cmd.time = Date.now() - startTime
-      controlLog.push cmd
-  $doc = $ document
-  onKeydown = (e) ->
-    control[keymap[e.keyCode]] = true if not control[keymap[e.keyCode]]
-  onKeyup = (e) ->
-    control[keymap[e.keyCode]] = false
-  controlLog = []
-  startTime = null
-  $record = $ "#record"
-  $play = $ "#play"
-  $record.click ->
-    control.top = control.down = control.left = control.right = false
-    $avatar.css "left", (stageWidth - avatarWidth) / 2 + "px"
-    $avatar.css "top", (stageHeight - avatarHeight) / 2 + "px"
-    startTime = Date.now()
-    controlLog = []
-    $doc.keydown onKeydown
-    $doc.keyup onKeyup
-    $record.attr "disabled", true
-    $play.attr "disabled", true
-    setTimeout ->
-      do $doc.off
-      startTime = null
-      $record.attr "disabled", false
-      $play.attr "disabled", false
-    , 5000
-  $play.
-    attr("disabled", true).
-    click ->
-      $play.attr "disabled", true
-      control.top = control.down = control.left = control.right = false
-      $avatar.css "left", (stageWidth - avatarWidth) / 2 + "px"
-      $avatar.css "top", (stageHeight - avatarHeight) / 2 + "px"
-      startTime = Date.now()
-      index = 0
-      intervalID = setInterval ->
-        now = Date.now() - startTime
-        loop
-          log = controlLog[index]
-          if not log or log.time > now
-            break
-          else
-            Ree.exec controlSource, controlLog[index]
-            index += 1
-      , interval
-      setTimeout ->
-        clearInterval intervalID
-        startTime = null
-        $play.attr "disabled", false
-      , 5000
+  do ->
+    fps = 60
+    interval = 1000 / fps
 
-  $stage = $ "#stage"
-  stageWidth = parseInt $stage.width()
-  stageHeight = parseInt $stage.height()
-  $avatar = $ "#avatar"
-  avatarWidth = parseInt $avatar.width()
-  avatarHeight = parseInt $avatar.height()
-  setInterval ->
-    return if not startTime
-    newX = x = parseInt $avatar.css "left"
-    newY = y = parseInt $avatar.css "top"
-    newY = y - 1 if control.up
-    newY = y + 1 if control.down
-    newX = x - 1 if control.left
-    newX = x + 1 if control.right
-    newX = 0 if newX < 0
-    newX = stageWidth - avatarWidth if newX > stageWidth - avatarWidth
-    newY = 0 if newY < 0
-    newY = stageHeight - avatarHeight if newY > stageHeight - avatarHeight
-    $avatar.css "left", newX + "px" if newX isnt x
-    $avatar.css "top", newY + "px" if newY isnt y
-  , interval
+    keymap =
+      "38": "up"
+      "40": "down"
+      "37": "left"
+      "39": "right"
+
+    controlSource =
+      up: false
+      down: false
+      left: false
+      right: false
+
+    control = Ree controlSource
+    control.on "bubble", (cmd) ->
+      if startTime and (cmd.type is "set")
+        cmd.time = Date.now() - startTime
+        controlLog.push cmd
+    controlLog = []
+    startTime = null
+
+    game = new EventEmitter2
+    game.limit = 5000
+    game.lastInvoke = 0
+    game.stage = {}
+    game.avatar = {}
+    game.start = ->
+      control.top = control.down = control.left = control.right = false
+      $avatar.css "left", (game.stage.width - game.avatar.width) / 2 + "px"
+      $avatar.css "top", (game.stage.height - game.avatar.height) / 2 + "px"
+      startTime = do Date.now
+      game.on "update", mainLoop
+      game.emit "start"
+    game.end = ->
+      game.off "update", mainLoop
+      startTime = 0
+      game.emit "end"
+    setInterval ->
+      now = do Date.now - startTime
+      delta = now - game.lastInvoke
+      game.emit "update", now, delta
+      game.lastInvoke = now
+    , interval
+
+    $doc = $ document
+    $record = $ "#record"
+    $play = $ "#play"
+    $stage = $ "#stage"
+    $time = $ "#time"
+    $avatar = $ "#avatar"
+
+    game.stage.width = parseInt $stage.width()
+    game.stage.height = parseInt $stage.height()
+    game.avatar.width = parseInt $avatar.width()
+    game.avatar.height = parseInt $avatar.height()
+
+    mainLoop = (now, delta) ->
+      $time.text Math.ceil (game.limit - now) / 1000
+      newX = x = parseInt $avatar.css "left"
+      newY = y = parseInt $avatar.css "top"
+      newY = y - 1 if control.up
+      newY = y + 1 if control.down
+      newX = x - 1 if control.left
+      newX = x + 1 if control.right
+      newX = 0 if newX < 0
+      newX = game.stage.width - game.avatar.width if newX > game.stage.width - game.avatar.width
+      newY = 0 if newY < 0
+      newY = game.stage.height - game.avatar.height if newY > game.stage.height - game.avatar.height
+      $avatar.css "left", newX + "px" if newX isnt x
+      $avatar.css "top", newY + "px" if newY isnt y
+      do game.end if now > game.limit
+
+    onKeydown = (e) ->
+      control[keymap[e.keyCode]] = true if not control[keymap[e.keyCode]]
+    onKeyup = (e) ->
+      control[keymap[e.keyCode]] = false
+
+    $record.click ->
+      do game.start
+      controlLog = []
+      $doc.keydown onKeydown
+      $doc.keyup onKeyup
+      $record.attr "disabled", true
+      $play.attr "disabled", true
+      game.on "end", ->
+        do $doc.off
+        $record.attr "disabled", false
+        $play.attr "disabled", false
+
+    $play.
+      attr("disabled", true).
+      click ->
+        $play.attr "disabled", true
+        index = 0
+        replayLoop = (now, delta) ->
+          loop
+            log = controlLog[index]
+            if not log or log.time > now
+              break
+            else
+              Ree.exec controlSource, controlLog[index]
+              index += 1
+        do game.start
+        game.on "update", replayLoop
+        game.on "end", ->
+          $play.attr "disabled", false
