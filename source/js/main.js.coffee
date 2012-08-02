@@ -90,6 +90,7 @@ Log = (log) ->
 
 $(document).ready ->
   socket = io.connect "http://caasi.three.jit.su:80/"
+  #socket = io.connect "http://caasigd.org:8081/"
 
   thRee =
     prev_name: $.cookie "name"
@@ -252,3 +253,29 @@ $(document).ready ->
         game.on "update", replayLoop
         game.on "end", ->
           $play.attr "disabled", false
+
+  # game of life
+  do ->
+    socket.on "life", (life) ->
+      agentLife = Ree DObject.validate life
+      cells = []
+      $stage = $ "#life .stage"
+      $stage.css "width", life.width * 10 + "px"
+      for y in [0..life.height - 1]
+        for x in [0..life.width - 1]
+          ((x, y) ->
+            $cell = $ "<div class=\"cell\"></div>"
+            $cell.click ->
+              agentLife.glider x, y
+            $cell.toggleClass "alive", life.world[x + y * life.width]
+            $stage.append $cell
+            cells.push $cell
+          ) x, y
+
+      agentLife.on "bubble", (cmd) ->
+        socket.emit "life.cmd", cmd
+
+      socket.on "life.cmd", (cmd) ->
+        Ree.exec life, cmd
+        index = parseInt cmd.keypath[cmd.keypath.length - 1], 10
+        cells[index].toggleClass "alive", life.world[index]
