@@ -257,19 +257,29 @@ $(document).ready ->
   # game of life
   do ->
     socket.on "life", (life) ->
+      console.log life
       agentLife = Ree DObject.validate life
       cells = []
       $stage = $ "#life .stage"
-      $stage.css "width", life.width * 10 + "px"
+      $canvas = $ "<canvas width=\"" + life.width * 10 + "\" height =\"" + life.height * 10 + "\"></canvas>"
+      $canvas.drawCell = (x, y, isAlive) ->
+        x *= 10
+        y *= 10
+        ctx = $canvas.get()[0].getContext "2d"
+        ctx.fillStyle = "rgb(204, 204, 204)"
+        ctx.fillRect x, y, 10, 10
+        ctx.fillStyle = if isAlive then "rgb(0, 0, 0)" else "rgb(255, 255, 255)"
+        ctx.fillRect x, y, 9.5, 9.5
+        return this
+      $canvas.click (e) ->
+        x = Math.floor e.offsetX / 10
+        y = Math.floor e.offsetY / 10
+        agentLife.glider x, y
+      $stage.append $canvas
       for y in [0..life.height - 1]
         for x in [0..life.width - 1]
           ((x, y) ->
-            $cell = $ "<div class=\"cell\"></div>"
-            $cell.click ->
-              agentLife.glider x, y
-            $cell.toggleClass "alive", life.world[x + y * life.width]
-            $stage.append $cell
-            cells.push $cell
+            $canvas.drawCell x, y, life.world[x + y * life.width]
           ) x, y
 
       agentLife.on "bubble", (cmd) ->
@@ -278,4 +288,6 @@ $(document).ready ->
       socket.on "life.cmd", (cmd) ->
         Ree.exec life, cmd
         index = parseInt cmd.keypath[cmd.keypath.length - 1], 10
-        cells[index].toggleClass "alive", life.world[index]
+        x = Math.floor index % life.width
+        y = Math.floor index / life.width
+        $canvas.drawCell x, y, life.world[index]
