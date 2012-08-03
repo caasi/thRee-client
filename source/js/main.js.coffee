@@ -280,8 +280,8 @@ $(document).ready ->
         ctx = stageCanvas.getContext "2d"
         ctx.drawImage (if isAlive then cellAlive else cellDead), x * 10, y * 10
       $stageCanvas.click (e) ->
-        x = Math.floor e.offsetX / 10
-        y = Math.floor e.offsetY / 10
+        x = (0.5 + e.offsetX / 10) << 0
+        y = (0.5 + e.offsetY / 10) << 0
         agentLife.glider x, y
       $stage.append $stageCanvas
       ctx = stageCanvas.getContext "2d"
@@ -307,8 +307,8 @@ $(document).ready ->
       socket.on "life.cmd", (cmd) ->
         #Ree.exec life, cmd
         index = parseInt cmd.keypath[cmd.keypath.length - 1], 10
-        x = Math.floor index % life.width
-        y = Math.floor index / life.width
+        x = (0.5 + index % life.width) << 0
+        y = (0.5 + index / life.width) << 0
         stageCanvas.drawCell x, y, cmd.args[0]
         removeCmd cmd
         cmd = null
