@@ -256,30 +256,42 @@ $(document).ready ->
 
   # game of life
   do ->
+    Cell = (color) ->
+      c = document.createElement "canvas"
+      c.width = 10
+      c.height = 10
+      ctx = c.getContext "2d"
+      ctx.fillStyle = "rgb(204, 204, 204)"
+      ctx.fillRect 0, 0, 10, 10
+      ctx.fillStyle = color
+      ctx.fillRect 0, 0, 9.5, 9.5
+      c
     socket.on "life", (life) ->
-      console.log life
       agentLife = Ree DObject.validate life
       cells = []
+      cellAlive = Cell "rgb(255, 153, 0)"
+      cellDead = Cell "rgb(255, 255, 255)"
       $stage = $ "#life .stage"
-      $canvas = $ "<canvas width=\"" + life.width * 10 + "\" height =\"" + life.height * 10 + "\"></canvas>"
-      $canvas.drawCell = (x, y, isAlive) ->
+      stageCanvas = document.createElement "canvas"
+      stageCanvas.width = life.width * 10
+      stageCanvas.height = life.height * 10
+      $stageCanvas = $ stageCanvas
+      stageCanvas.drawCell = (x, y, isAlive) ->
         x *= 10
         y *= 10
-        ctx = $canvas.get()[0].getContext "2d"
-        ctx.fillStyle = "rgb(204, 204, 204)"
-        ctx.fillRect x, y, 10, 10
-        ctx.fillStyle = if isAlive then "rgb(0, 0, 0)" else "rgb(255, 255, 255)"
-        ctx.fillRect x, y, 9.5, 9.5
+        ctx = stageCanvas.getContext "2d"
+        ctx.drawImage (if isAlive then cellAlive else cellDead), x, y
         return this
-      $canvas.click (e) ->
+      $stageCanvas.click (e) ->
         x = Math.floor e.offsetX / 10
         y = Math.floor e.offsetY / 10
         agentLife.glider x, y
-      $stage.append $canvas
+      $stage.append $stageCanvas
+
       for y in [0..life.height - 1]
         for x in [0..life.width - 1]
           ((x, y) ->
-            $canvas.drawCell x, y, life.world[x + y * life.width]
+            stageCanvas.drawCell x, y, life.world[x + y * life.width]
           ) x, y
 
       agentLife.on "bubble", (cmd) ->
@@ -290,4 +302,4 @@ $(document).ready ->
         index = parseInt cmd.keypath[cmd.keypath.length - 1], 10
         x = Math.floor index % life.width
         y = Math.floor index / life.width
-        $canvas.drawCell x, y, life.world[index]
+        stageCanvas.drawCell x, y, life.world[index]
