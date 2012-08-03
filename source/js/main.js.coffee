@@ -294,9 +294,21 @@ $(document).ready ->
       agentLife.on "bubble", (cmd) ->
         socket.emit "life.cmd", cmd
 
+      removeCmd = (cmd) ->
+        ((key) ->
+          delete cmd.keypath[key]
+        ) key for key in cmd.keypath
+        ((key) ->
+          delete cmd.args[key]
+        ) key for key in cmd.args
+        delete cmd.keypath
+        delete cmd.args
+
       socket.on "life.cmd", (cmd) ->
         #Ree.exec life, cmd
         index = parseInt cmd.keypath[cmd.keypath.length - 1], 10
         x = Math.floor index % life.width
         y = Math.floor index / life.width
         stageCanvas.drawCell x, y, cmd.args[0]
+        removeCmd cmd
+        cmd = null
