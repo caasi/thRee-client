@@ -287,7 +287,7 @@ $(document).ready ->
       stageCanvas.width = life.width * 10
       stageCanvas.height = life.height * 10
       $stageCanvas = $ stageCanvas
-      stageCanvas.buffer = new Uint16Array new ArrayBuffer 6000
+      stageCanvas.buffer = new Uint8Array new ArrayBuffer 3600
       stageCanvas.current = 0
       stageCanvas.lineUp = (x, y, isAlive) ->
         stageCanvas.buffer[stageCanvas.current] = x
