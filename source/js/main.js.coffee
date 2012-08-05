@@ -287,13 +287,19 @@ $(document).ready ->
       stageCanvas.width = life.width * 10
       stageCanvas.height = life.height * 10
       $stageCanvas = $ stageCanvas
-      stageCanvas.buffer = new Uint8Array new ArrayBuffer 3600
+      stageCanvas.buffer = new Uint8Array new ArrayBuffer 2400
       stageCanvas.current = 0
-      stageCanvas.lineUp = (x, y, isAlive) ->
+      stageCanvas.sync = ->
+        stageCanvas.current = 0
+        for y in [0..life.height - 1]
+          for x in [0..life.width - 1]
+            ((x, y) ->
+              stageCanvas.lineUp x, y, life.world[x + y * life.width]
+            ) x, y
+      stageCanvas.lineUp = (x, y) ->
         stageCanvas.buffer[stageCanvas.current] = x
         stageCanvas.buffer[stageCanvas.current + 1] = y
-        stageCanvas.buffer[stageCanvas.current + 2] = if isAlive then 1 else 0
-        stageCanvas.current += 3
+        stageCanvas.current += 2
       stageCanvas.drawCell = (x, y, isAlive) ->
         ctx = stageCanvas.getContext "2d"
         ctx.drawImage (if isAlive then cellAlive else cellDead), x * 10, y * 10
@@ -304,23 +310,20 @@ $(document).ready ->
           while i < stageCanvas.current
             x = stageCanvas.buffer[i]
             y = stageCanvas.buffer[i + 1]
-            isAlive = stageCanvas.buffer[i + 2]
+            isAlive = life.world[x + y * life.width]
             ctx.drawImage (if isAlive then cellAlive else cellDead), x * 10, y * 10
-            i += 3
+            i += 2
           stageCanvas.current = 0
       game.on "update", stageCanvas.loop
+      do stageCanvas.sync
+      $(window).focus ->
+        do stageCanvas.sync
 
       $stageCanvas.click (e) ->
         x = (e.offsetX / 10) | 0
         y = (e.offsetY / 10) | 0
         agentLife.glider x, y
       $stage.append $stageCanvas
-      ctx = stageCanvas.getContext "2d"
-      for y in [0..life.height - 1]
-        for x in [0..life.width - 1]
-          ((x, y) ->
-            stageCanvas.lineUp x, y, life.world[x + y * life.width]
-          ) x, y
 
       agentLife.on "bubble", (cmd) ->
         socket.emit "life.cmd", cmd
@@ -336,11 +339,10 @@ $(document).ready ->
         delete cmd.args
 
       socket.on "life.cmd", (cmd) ->
-        #Ree.exec life, cmd
+        Ree.exec life, cmd
         index = parseInt cmd.keypath[cmd.keypath.length - 1], 10
         x = (index % life.width) | 0
         y = (index / life.width) | 0
-        #stageCanvas.drawCell x, y, cmd.args[0]
-        stageCanvas.lineUp x, y, cmd.args[0]
+        stageCanvas.lineUp x, y
         removeCmd cmd
         cmd = null
