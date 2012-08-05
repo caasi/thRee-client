@@ -143,6 +143,22 @@ $(document).ready ->
 
   do $("input:last").focus
 
+  # game loop for everybody
+  requestAnimationFrame = window.requestAnimationFrame or
+                          window.webkitRequestAnimationFrame or
+                          window.mozRequestAnimationFrame or
+                          window.oRequestAnimationFrame or
+                          window.msRequestAnimationFrame or
+                          (cc) ->
+                            window.setTimeout cc, 1000 / 60
+  game = new EventEmitter2
+  game.lastInvoke = 0
+  do game.loop = ->
+    requestAnimationFrame game.loop
+    now = do Date.now
+    delta = now - game.lastInvoke
+    game.emit "update", now, delta
+    game.lastInvoke = now
   # recorder
   do ->
     fps = 60
@@ -162,34 +178,44 @@ $(document).ready ->
 
     control = Ree controlSource
     control.on "bubble", (cmd) ->
-      if startTime and (cmd.type is "set")
-        cmd.time = Date.now() - startTime
+      if recorder.timeStart and (cmd.type is "set")
+        cmd.time = Date.now() - recorder.timeStart
         controlLog.push cmd
     controlLog = []
-    startTime = null
 
-    game = new EventEmitter2
-    game.limit = 5000
-    game.lastInvoke = 0
-    game.stage = {}
-    game.avatar = {}
-    game.start = ->
+    recorder = new EventEmitter2()
+    recorder.stage = {}
+    recorder.avatar = {}
+    recorder.timeLimit = 0
+    recorder.timeStart = 0
+    recorder.start = ->
       control.top = control.down = control.left = control.right = false
-      $avatar.css "left", (game.stage.width - game.avatar.width) / 2 + "px"
-      $avatar.css "top", (game.stage.height - game.avatar.height) / 2 + "px"
-      startTime = do Date.now
-      game.on "update", mainLoop
-      game.emit "start"
-    game.end = ->
-      game.off "update", mainLoop
-      startTime = 0
-      game.emit "end"
-    setInterval ->
-      now = do Date.now - startTime
-      delta = now - game.lastInvoke
-      game.emit "update", now, delta
-      game.lastInvoke = now
-    , interval
+      $avatar.css "left", (recorder.stage.width - recorder.avatar.width) / 2 + "px"
+      $avatar.css "top", (recorder.stage.height - recorder.avatar.height) / 2 + "px"
+      recorder.timeStart = do Date.now
+      recorder.timeLimit = recorder.timeStart + 5000
+      game.on "update", recorder.loop
+      recorder.emit "start"
+    recorder.end = ->
+      game.off "update", recorder.loop
+      recorder.timeStart = recorder.timeLimit = 0
+      recorder.emit "end"
+    recorder.loop = (now, delta) ->
+      $time.text Math.ceil (recorder.timeLimit - now) / 1000
+      newX = x = parseInt $avatar.css "left"
+      newY = y = parseInt $avatar.css "top"
+      newY = y - 1 if control.up
+      newY = y + 1 if control.down
+      newX = x - 1 if control.left
+      newX = x + 1 if control.right
+      newX = 0 if newX < 0
+      newX = recorder.stage.width - recorder.avatar.width if newX > recorder.stage.width - recorder.avatar.width
+      newY = 0 if newY < 0
+      newY = recorder.stage.height - recorder.avatar.height if newY > recorder.stage.height - recorder.avatar.height
+      $avatar.css "left", newX + "px" if newX isnt x
+      $avatar.css "top", newY + "px" if newY isnt y
+      do recorder.end if now > recorder.timeLimit
+
 
     $doc = $ document
     $record = $ "#record"
@@ -198,26 +224,10 @@ $(document).ready ->
     $time = $ "#time"
     $avatar = $ "#avatar"
 
-    game.stage.width = parseInt $stage.width()
-    game.stage.height = parseInt $stage.height()
-    game.avatar.width = parseInt $avatar.width()
-    game.avatar.height = parseInt $avatar.height()
-
-    mainLoop = (now, delta) ->
-      $time.text Math.ceil (game.limit - now) / 1000
-      newX = x = parseInt $avatar.css "left"
-      newY = y = parseInt $avatar.css "top"
-      newY = y - 1 if control.up
-      newY = y + 1 if control.down
-      newX = x - 1 if control.left
-      newX = x + 1 if control.right
-      newX = 0 if newX < 0
-      newX = game.stage.width - game.avatar.width if newX > game.stage.width - game.avatar.width
-      newY = 0 if newY < 0
-      newY = game.stage.height - game.avatar.height if newY > game.stage.height - game.avatar.height
-      $avatar.css "left", newX + "px" if newX isnt x
-      $avatar.css "top", newY + "px" if newY isnt y
-      do game.end if now > game.limit
+    recorder.stage.width = parseInt $stage.width()
+    recorder.stage.height = parseInt $stage.height()
+    recorder.avatar.width = parseInt $avatar.width()
+    recorder.avatar.height = parseInt $avatar.height()
 
     onKeydown = (e) ->
       control[keymap[e.keyCode]] = true if not control[keymap[e.keyCode]]
@@ -225,13 +235,13 @@ $(document).ready ->
       control[keymap[e.keyCode]] = false
 
     $record.click ->
-      do game.start
+      do recorder.start
       controlLog = []
       $doc.keydown onKeydown
       $doc.keyup onKeyup
       $record.attr "disabled", true
       $play.attr "disabled", true
-      game.on "end", ->
+      recorder.on "end", ->
         do $doc.off
         $record.attr "disabled", false
         $play.attr "disabled", false
@@ -244,15 +254,16 @@ $(document).ready ->
         replayLoop = (now, delta) ->
           loop
             log = controlLog[index]
-            if not log or log.time > now
-              break
-            else
-              Ree.exec controlSource, controlLog[index]
+            if log and log.time < now - recorder.timeStart
+              Ree.exec controlSource, log
               index += 1
-        do game.start
+            else
+              break
+        do recorder.start
         game.on "update", replayLoop
-        game.on "end", ->
+        recorder.on "end", ->
           $play.attr "disabled", false
+          game.off "update", replayLoop
 
   # game of life
   do ->
@@ -276,19 +287,39 @@ $(document).ready ->
       stageCanvas.width = life.width * 10
       stageCanvas.height = life.height * 10
       $stageCanvas = $ stageCanvas
+      stageCanvas.buffer = new Uint16Array new ArrayBuffer 6000
+      stageCanvas.current = 0
+      stageCanvas.lineUp = (x, y, isAlive) ->
+        stageCanvas.buffer[stageCanvas.current] = x
+        stageCanvas.buffer[stageCanvas.current + 1] = y
+        stageCanvas.buffer[stageCanvas.current + 2] = if isAlive then 1 else 0
+        stageCanvas.current += 3
       stageCanvas.drawCell = (x, y, isAlive) ->
         ctx = stageCanvas.getContext "2d"
         ctx.drawImage (if isAlive then cellAlive else cellDead), x * 10, y * 10
+      stageCanvas.loop = (now, delta) ->
+        if stageCanvas.current isnt 0
+          ctx = stageCanvas.getContext "2d"
+          i = 0
+          while i < stageCanvas.current
+            x = stageCanvas.buffer[i]
+            y = stageCanvas.buffer[i + 1]
+            isAlive = stageCanvas.buffer[i + 2]
+            ctx.drawImage (if isAlive then cellAlive else cellDead), x * 10, y * 10
+            i += 3
+          stageCanvas.current = 0
+      game.on "update", stageCanvas.loop
+
       $stageCanvas.click (e) ->
-        x = (0.5 + e.offsetX / 10) << 0
-        y = (0.5 + e.offsetY / 10) << 0
+        x = (e.offsetX / 10) | 0
+        y = (e.offsetY / 10) | 0
         agentLife.glider x, y
       $stage.append $stageCanvas
       ctx = stageCanvas.getContext "2d"
       for y in [0..life.height - 1]
         for x in [0..life.width - 1]
           ((x, y) ->
-            ctx.drawImage (if life.world[x + y * life.width] then cellAlive else cellDead), x * 10, y * 10
+            stageCanvas.lineUp x, y, life.world[x + y * life.width]
           ) x, y
 
       agentLife.on "bubble", (cmd) ->
@@ -307,8 +338,9 @@ $(document).ready ->
       socket.on "life.cmd", (cmd) ->
         #Ree.exec life, cmd
         index = parseInt cmd.keypath[cmd.keypath.length - 1], 10
-        x = (0.5 + index % life.width) << 0
-        y = (0.5 + index / life.width) << 0
-        stageCanvas.drawCell x, y, cmd.args[0]
+        x = (index % life.width) | 0
+        y = (index / life.width) | 0
+        #stageCanvas.drawCell x, y, cmd.args[0]
+        stageCanvas.lineUp x, y, cmd.args[0]
         removeCmd cmd
         cmd = null
