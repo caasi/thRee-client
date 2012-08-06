@@ -113,20 +113,25 @@ body
         input:focus
           outline: none
           color: yellow
-  #recorder
+  .window
+    +box-sizing(border-box)
     +border-radius
     +box-shadow(#151515 0 10px 100px)
     position: absolute
-    top: 10px
-    left: 10px
     background-color: #101010
-    padding: 1em
-    text-align: center
-    #stage
+    padding: 0 1em 1em 1em
+    .title
+      font-weight: bol
+      text-align: left
+      color: #F90
+      margin-top: .5em
+      margin-bottom: .5em
+    .stage
       overflow: hidden
       position: relative
-      width: 160px
-      height: 120px
+  #recorder
+    text-align: center
+    .stage
       border: 1px solid #666
       margin-bottom: 1em
       #time
@@ -145,18 +150,5 @@ body
     #record
       color: red
     #play
-  .window
-    +border-radius
-    +box-shadow(#151515 0 10px 100px)
-    position: absolute
-    background-color: #101010
-    padding: 1em
-    text-align: center
-  .stage
-    overflow: hidden
-    position: relative
   #life
-    +box-sizing(border-box)
-    top: 10px
-    right: 10px
     .stage

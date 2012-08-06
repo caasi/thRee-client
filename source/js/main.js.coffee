@@ -161,6 +161,18 @@ $(document).ready ->
     game.lastInvoke = now
   # recorder
   do ->
+    $("#recorder").window
+      title: "recorder"
+      prefPosition: (width, height) ->
+        return {
+          x: 10
+          y: 10
+        }
+      prefStageSize: ->
+        return {
+          width: 160
+          height: 120
+        }
     fps = 60
     interval = 1000 / fps
 
@@ -190,8 +202,9 @@ $(document).ready ->
     recorder.timeStart = 0
     recorder.start = ->
       control.top = control.down = control.left = control.right = false
-      $avatar.css "left", (recorder.stage.width - recorder.avatar.width) / 2 + "px"
-      $avatar.css "top", (recorder.stage.height - recorder.avatar.height) / 2 + "px"
+      $avatar.offset
+        left: (recorder.stage.width - recorder.avatar.width) / 2
+        top: (recorder.stage.height - recorder.avatar.height) / 2
       recorder.timeStart = do Date.now
       recorder.timeLimit = recorder.timeStart + 5000
       game.on "update", recorder.loop
@@ -216,11 +229,10 @@ $(document).ready ->
       $avatar.css "top", newY + "px" if newY isnt y
       do recorder.end if now > recorder.timeLimit
 
-
     $doc = $ document
     $record = $ "#record"
     $play = $ "#play"
-    $stage = $ "#stage"
+    $stage = $ "recorder.stage"
     $time = $ "#time"
     $avatar = $ "#avatar"
 
@@ -278,6 +290,18 @@ $(document).ready ->
       ctx.fillRect 0, 0, 9.5, 9.5
       c
     socket.on "life", (life) ->
+      $("#life").window
+        title: "game of life"
+        prefPosition: (width, height) ->
+          return {
+            x: 10
+            y: 300
+          }
+        prefStageSize: ->
+          return {
+            width: life.width * 10
+            height: life.height * 10
+          }
       agentLife = Ree DObject.validate life
       cells = []
       cellAlive = Cell "rgb(255, 153, 0)"
