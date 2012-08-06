@@ -348,7 +348,7 @@ $(document).ready ->
         do stageCanvas.sync
 
       $stageCanvas.click (e) ->
-        offset = do $(this).position
+        offset = do $(this).offset
         x = ((e.pageX - offset.left) / cell.width) | 0
         y = ((e.pageY - offset.top) / cell.height) | 0
         agentLife.glider x, y
