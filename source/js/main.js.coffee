@@ -171,7 +171,7 @@ $(document).ready ->
       prefStageSize: ->
         return {
           width: 160
-          height: 120
+          height: 160
         }
     fps = 60
     interval = 1000 / fps
@@ -202,9 +202,8 @@ $(document).ready ->
     recorder.timeStart = 0
     recorder.start = ->
       control.top = control.down = control.left = control.right = false
-      $avatar.offset
-        left: (recorder.stage.width - recorder.avatar.width) / 2
-        top: (recorder.stage.height - recorder.avatar.height) / 2
+      $avatar.css "left", (recorder.stage.width - recorder.avatar.width) / 2
+      $avatar.css "top", (recorder.stage.height - recorder.avatar.height) / 2
       recorder.timeStart = do Date.now
       recorder.timeLimit = recorder.timeStart + 5000
       game.on "update", recorder.loop
@@ -215,8 +214,9 @@ $(document).ready ->
       recorder.emit "end"
     recorder.loop = (now, delta) ->
       $time.text Math.ceil (recorder.timeLimit - now) / 1000
-      newX = x = parseInt $avatar.css "left"
-      newY = y = parseInt $avatar.css "top"
+      offset = do $avatar.position
+      newX = x = offset.left
+      newY = y = offset.top
       newY = y - 1 if control.up
       newY = y + 1 if control.down
       newX = x - 1 if control.left
@@ -225,21 +225,22 @@ $(document).ready ->
       newX = recorder.stage.width - recorder.avatar.width if newX > recorder.stage.width - recorder.avatar.width
       newY = 0 if newY < 0
       newY = recorder.stage.height - recorder.avatar.height if newY > recorder.stage.height - recorder.avatar.height
-      $avatar.css "left", newX + "px" if newX isnt x
-      $avatar.css "top", newY + "px" if newY isnt y
+      $avatar.css "left", newX if newX isnt x
+      $avatar.css "top", newY if newY isnt y
       do recorder.end if now > recorder.timeLimit
 
     $doc = $ document
     $record = $ "#record"
     $play = $ "#play"
-    $stage = $ "recorder.stage"
+    $stage = $ "#recorder .stage"
     $time = $ "#time"
     $avatar = $ "#avatar"
 
-    recorder.stage.width = parseInt $stage.width()
-    recorder.stage.height = parseInt $stage.height()
-    recorder.avatar.width = parseInt $avatar.width()
-    recorder.avatar.height = parseInt $avatar.height()
+    console.log $stage.width()
+    recorder.stage.width = parseInt $stage.width(), 10
+    recorder.stage.height = parseInt $stage.height(), 10
+    recorder.avatar.width = parseInt $avatar.width(), 10
+    recorder.avatar.height = parseInt $avatar.height(), 10
 
     onKeydown = (e) ->
       control[keymap[e.keyCode]] = true if not control[keymap[e.keyCode]]
@@ -347,7 +348,7 @@ $(document).ready ->
         do stageCanvas.sync
 
       $stageCanvas.click (e) ->
-        offset = $(this).offset()
+        offset = do $(this).position
         x = ((e.pageX - offset.left) / cell.width) | 0
         y = ((e.pageY - offset.top) / cell.height) | 0
         agentLife.glider x, y

@@ -1,23 +1,22 @@
 (function($) {
   var methods = {
     init: function(options) {
-      var settings = $.extend({
-        "title": "untitled",
-        "prefPosition": function(width, height) {
-          return {
-            x: width / 2,
-            y: height / 5 * 3
-          };
-        },
-        "prefStageSize": function(width, height) {
-          return {
-            width: 100,
-            height: 100
-          };
-        }
-      }, options);
-
       return this.each(function() {
+        var settings = $.extend({
+          "title": "untitled",
+          "prefPosition": function(width, height) {
+            return {
+              x: width / 2,
+              y: height / 5 * 3
+            };
+          },
+          "prefStageSize": function(width, height) {
+            return {
+              width: 100,
+              height: 100
+            };
+          }
+        }, options);
         var $this = $(this);
         var $title = $this.find(".title");
         var $stage = $this.find(".stage");
@@ -26,8 +25,6 @@
         var isDragging = false, delta;
 
         if (!$stage) return null;
-
-        $title.text(settings.title);
 
         (onWindowResize = function(e) {
           var width = $win.width();
@@ -43,20 +40,25 @@
         offset = settings.prefPosition($win.width(), $win.height());
 
         $this.
+          css("left", offset.x).
+          css("top", offset.y);
+
+        $title.
+          text(settings.title).
           mousedown(function(e) {
             e.stopPropagation();
+            console.log(this);
             isDragging = true;
-            delta = $this.offset();
-            delta.left -= e.clientX;
-            delta.top -= e.clientY;
+            delta = $this.position();
+            delta.left -= e.pageX;
+            delta.top -= e.pageY;
 
             $win.
               mousemove(function(e) {
                 if (isDragging) {
-                  $this.offset({
-                    left: e.clientX + delta.left,
-                    top: e.clientY + delta.top
-                  });
+                  $this.
+                    css("left", e.pageX + delta.left).
+                    css("top", e.pageY + delta.top);
                 }
               }).
               mouseup(function(e) {
@@ -65,10 +67,6 @@
                   off("mousemove").
                   off("mouseup");
               });
-          }).
-          offset({
-            left: offset.x,
-            top: offset.y
           });
       });
     },
