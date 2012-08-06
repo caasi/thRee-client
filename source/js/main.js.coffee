@@ -280,8 +280,8 @@ $(document).ready ->
   # game of life
   do ->
     cell =
-      width: 5
-      height: 5
+      width: 8
+      height: 8
     Cell = (color) ->
       c = document.createElement "canvas"
       c.width = cell.width
@@ -314,7 +314,7 @@ $(document).ready ->
       stageCanvas.width = life.width * cell.width
       stageCanvas.height = life.height * cell.height
       $stageCanvas = $ stageCanvas
-      stageCanvas.buffer = new Uint8Array new ArrayBuffer 2400
+      stageCanvas.buffer = new Uint8Array new ArrayBuffer 2 * life.width * life.height
       stageCanvas.current = 0
       stageCanvas.sync = ->
         stageCanvas.current = 0
@@ -347,8 +347,9 @@ $(document).ready ->
         do stageCanvas.sync
 
       $stageCanvas.click (e) ->
-        x = (e.offsetX / cell.width) | 0
-        y = (e.offsetY / cell.height) | 0
+        offset = $(this).offset()
+        x = ((e.pageX - offset.left) / cell.width) | 0
+        y = ((e.pageY - offset.top) / cell.height) | 0
         agentLife.glider x, y
       $stage.append $stageCanvas
 
