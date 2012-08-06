@@ -279,15 +279,18 @@ $(document).ready ->
 
   # game of life
   do ->
+    cell =
+      width: 5
+      height: 5
     Cell = (color) ->
       c = document.createElement "canvas"
-      c.width = 10
-      c.height = 10
+      c.width = cell.width
+      c.height = cell.height
       ctx = c.getContext "2d"
       ctx.fillStyle = "rgb(204, 204, 204)"
-      ctx.fillRect 0, 0, 10, 10
+      ctx.fillRect 0, 0, cell.width, cell.height
       ctx.fillStyle = color
-      ctx.fillRect 0, 0, 9.5, 9.5
+      ctx.fillRect 0, 0, cell.width - .5, cell.height - .5
       c
     socket.on "life", (life) ->
       $("#life").window
@@ -299,8 +302,8 @@ $(document).ready ->
           }
         prefStageSize: ->
           return {
-            width: life.width * 10
-            height: life.height * 10
+            width: life.width * cell.width
+            height: life.height * cell.height
           }
       agentLife = Ree DObject.validate life
       cells = []
@@ -308,8 +311,8 @@ $(document).ready ->
       cellDead = Cell "rgb(255, 255, 255)"
       $stage = $ "#life .stage"
       stageCanvas = document.createElement "canvas"
-      stageCanvas.width = life.width * 10
-      stageCanvas.height = life.height * 10
+      stageCanvas.width = life.width * cell.width
+      stageCanvas.height = life.height * cell.height
       $stageCanvas = $ stageCanvas
       stageCanvas.buffer = new Uint8Array new ArrayBuffer 2400
       stageCanvas.current = 0
@@ -326,7 +329,7 @@ $(document).ready ->
         stageCanvas.current += 2
       stageCanvas.drawCell = (x, y, isAlive) ->
         ctx = stageCanvas.getContext "2d"
-        ctx.drawImage (if isAlive then cellAlive else cellDead), x * 10, y * 10
+        ctx.drawImage (if isAlive then cellAlive else cellDead), x * cell.width, y * cell.height
       stageCanvas.loop = (now, delta) ->
         if stageCanvas.current isnt 0
           ctx = stageCanvas.getContext "2d"
@@ -335,7 +338,7 @@ $(document).ready ->
             x = stageCanvas.buffer[i]
             y = stageCanvas.buffer[i + 1]
             isAlive = life.world[x + y * life.width]
-            ctx.drawImage (if isAlive then cellAlive else cellDead), x * 10, y * 10
+            ctx.drawImage (if isAlive then cellAlive else cellDead), x * cell.width, y * cell.height
             i += 2
           stageCanvas.current = 0
       game.on "update", stageCanvas.loop
@@ -344,8 +347,8 @@ $(document).ready ->
         do stageCanvas.sync
 
       $stageCanvas.click (e) ->
-        x = (e.offsetX / 10) | 0
-        y = (e.offsetY / 10) | 0
+        x = (e.offsetX / cell.width) | 0
+        y = (e.offsetY / cell.height) | 0
         agentLife.glider x, y
       $stage.append $stageCanvas
 
